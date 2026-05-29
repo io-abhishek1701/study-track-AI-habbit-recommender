@@ -17,18 +17,6 @@
 
 ---
 
-## 📸 Screenshots
-
-| Data Analysis Module | Visualization Module |
-|:---:|:---:|
-| ![Data Analysis]([Screenshot_2026-05-29_at_1_54_27_PM.png](https://github.com/io-abhishek1701/study-track-AI-habbit-recommender/issues/1#issue-4547061973)) | ![Visualization](Screenshot_2026-05-29_at_1_54_35_PM.png) |
-
-| Prediction & Inference | Authentication |
-|:---:|:---:|
-| ![Prediction](Screenshot_2026-05-29_at_1_54_46_PM.png) | ![Login](Screenshot_2026-05-29_at_1_54_53_PM.png) |
-
----
-
 ## 🧠 About
 
 **StudyTrack AI** is a data-driven system that analyses students' study habits and predicts their academic performance using machine learning. Upload any CSV/Excel student dataset and the system automatically:
