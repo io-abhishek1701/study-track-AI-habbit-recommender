@@ -21,7 +21,7 @@
 
 | Data Analysis Module | Visualization Module |
 |:---:|:---:|
-| ![Data Analysis](Screenshot_2026-05-29_at_1_54_27_PM.png) | ![Visualization](Screenshot_2026-05-29_at_1_54_35_PM.png) |
+| ![Data Analysis]([Screenshot_2026-05-29_at_1_54_27_PM.png](https://github.com/io-abhishek1701/study-track-AI-habbit-recommender/issues/1#issue-4547061973)) | ![Visualization](Screenshot_2026-05-29_at_1_54_35_PM.png) |
 
 | Prediction & Inference | Authentication |
 |:---:|:---:|
