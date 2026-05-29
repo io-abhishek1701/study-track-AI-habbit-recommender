@@ -15,7 +15,7 @@ from auth import auth_page
 from styles import load_styles
 from data_cleaner import clean_and_standardize_excel
 from model import train_regression_model, predict_student_score
-from kmeans_clustering import train_kmeans_clustering
+from kmeans_clustering import train_kmeans_clustering, get_cluster_performance_map, get_cluster_status_map
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -356,10 +356,14 @@ if st.session_state.current_page == "app":
 
     # ---------------- DATA PROCESSING ----------------
     
-    clean_df, clean_buffer, clean_filename, info = clean_and_standardize_excel(
-        uploaded_file,
-        output_filename="clean_student_data.xlsx"
-    )
+    try:
+        clean_df, clean_buffer, clean_filename, info = clean_and_standardize_excel(
+            uploaded_file,
+            output_filename="clean_student_data.xlsx"
+        )
+    except ValueError as e:
+        st.error(str(e))
+        st.stop()
 
     # ---------------- MODEL TRAINING ----------------
     if st.session_state.model is None:
@@ -514,11 +518,7 @@ if st.session_state.current_page == "app":
                 })
                 cluster = kmeans.predict(scaler.transform(df_new))[0]
 
-                remarks = {
-                    0: "Performance: OK (Room for Optimization)",
-                    1: "Performance: CRITICAL (Needs Improvement)",
-                    2: "Performance: EXCELLENT (Maintain Trajectory)"
-                }
+                remarks = get_cluster_performance_map(kmeans, scaler)
                 
                 st.markdown("---")
                 res_col1, res_col2 = st.columns(2)
@@ -530,7 +530,15 @@ if st.session_state.current_page == "app":
                 
                 # Gemini Feedback
                 with st.spinner("Connecting to Gemini AI for analysis..."):
-                    feedback = generate_student_feedback(study, work, play, sleep, round(marks, 2), cluster)
+                    feedback = generate_student_feedback(
+                        study,
+                        work,
+                        play,
+                        sleep,
+                        round(marks, 2),
+                        cluster,
+                        remarks[cluster]
+                    )
                 
                 st.markdown("### 🤖 AI Mentor Analysis")
                 st.info(feedback)
@@ -575,8 +583,9 @@ if st.session_state.current_page == "app":
                         new_data["Cluster_ID"] = kmeans.predict(X_scaled)
 
                         # 4. Map Standard Status (Existing)
-                        remarks_map = {0: "Needs Improvement", 1: "Average / Critical", 2: "Excellent"}
-                        new_data["Status"] = new_data["Cluster_ID"].map(remarks_map)
+                        new_data["Status"] = new_data["Cluster_ID"].map(
+                            get_cluster_status_map(kmeans, scaler)
+                        )
 
                         def generate_smart_remark(row):
                             marks = row["Predicted_Marks"]

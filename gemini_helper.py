@@ -26,10 +26,10 @@ def get_client():
         _client = genai.Client(api_key=api_key)
     return _client
 
-def generate_student_feedback(study, work, play, sleep, marks, cluster):
+def generate_student_feedback(study, work, play, sleep, marks, cluster, cluster_desc=None):
     # Map the cluster ID to a readable word for the AI
     cluster_map = {0: "Average", 1: "Poor", 2: "Excellent"}
-    cluster_desc = cluster_map.get(cluster, "Unknown")
+    cluster_desc = cluster_desc or cluster_map.get(cluster, "Unknown")
 
     prompt = f"""
     You are a friendly academic mentor.

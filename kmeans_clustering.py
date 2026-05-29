@@ -4,11 +4,41 @@ from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 from io import BytesIO
 
+FEATURE_COLUMNS = ['StudyHours', 'WorkHours', 'PlayHours', 'SleepHour', 'Marks']
+
+
+def get_cluster_performance_map(kmeans, scaler):
+    centers = scaler.inverse_transform(kmeans.cluster_centers_)
+    marks_index = FEATURE_COLUMNS.index('Marks')
+    clusters_by_marks = sorted(
+        enumerate(centers),
+        key=lambda item: item[1][marks_index]
+    )
+
+    labels = [
+        "Performance: CRITICAL (Needs Improvement)",
+        "Performance: OK (Room for Optimization)",
+        "Performance: EXCELLENT (Maintain Trajectory)"
+    ]
+
+    return {
+        cluster_id: labels[rank]
+        for rank, (cluster_id, _) in enumerate(clusters_by_marks)
+    }
+
+
+def get_cluster_status_map(kmeans, scaler):
+    performance_map = get_cluster_performance_map(kmeans, scaler)
+    return {
+        cluster_id: label.replace("Performance: ", "")
+        for cluster_id, label in performance_map.items()
+    }
+
 
 def train_kmeans_clustering(df):
    
     # Select features for clustering
-    X = df[['StudyHours', 'WorkHours', 'PlayHours', 'SleepHour', 'Marks']]
+    X = df[FEATURE_COLUMNS]
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -16,13 +46,7 @@ def train_kmeans_clustering(df):
     kmeans = KMeans(n_clusters=3, random_state=42)
     df['Cluster_Number'] = kmeans.fit_predict(X_scaled)
 
-    remarks = {
-        0: "Ok Performance! Can Improve",
-        1: "Bad Performance! Needs to Improve",
-        2: "Great Performance! Keep it Up"
-    }
-
-    df['Remark'] = df['Cluster_Number'].map(remarks)
+    df['Remark'] = df['Cluster_Number'].map(get_cluster_status_map(kmeans, scaler))
 
     return df, scaler, kmeans
 

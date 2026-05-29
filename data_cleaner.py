@@ -1,6 +1,7 @@
 import pandas as pd
 import re
 from io import BytesIO
+from pandas.errors import EmptyDataError
 
 def auto_detect_columns(df):
     normalized = {
@@ -51,13 +52,21 @@ def dataframe_to_excel_buffer(df):
 def clean_and_standardize_excel(uploaded_file, output_filename="clean_student_data.xlsx"):
     file_name = uploaded_file.name.lower()
 
-    if file_name.endswith(".csv"):
-        df_raw = pd.read_csv(uploaded_file)
-    else:
-        df_raw = pd.read_excel(uploaded_file)
+    try:
+        uploaded_file.seek(0)
+
+        if file_name.endswith(".csv"):
+            df_raw = pd.read_csv(uploaded_file)
+        else:
+            df_raw = pd.read_excel(uploaded_file)
+    except EmptyDataError as e:
+        raise ValueError("The uploaded file is empty or has no columns to parse.") from e
 
     # drop completely empty columns
     df_raw = df_raw.dropna(axis=1, how="all")
+
+    if df_raw.empty or len(df_raw.columns) == 0:
+        raise ValueError("The uploaded file is empty or has no usable columns.")
 
     marks_col, feature_map = auto_detect_columns(df_raw)
 
