@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+from io import BytesIO
 
 def auto_detect_columns(df):
     normalized = {
@@ -40,9 +41,14 @@ def auto_detect_columns(df):
 
     return marks_col, feature_map
 
-def clean_and_standardize_excel(uploaded_file, output_filename="clean_student_data.xlsx"):
-    import pandas as pd
+def dataframe_to_excel_buffer(df):
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False)
+    buffer.seek(0)
+    return buffer
 
+
+def clean_and_standardize_excel(uploaded_file, output_filename="clean_student_data.xlsx"):
     file_name = uploaded_file.name.lower()
 
     if file_name.endswith(".csv"):
@@ -70,7 +76,7 @@ def clean_and_standardize_excel(uploaded_file, output_filename="clean_student_da
     if rename_dict:
         df_clean = df_clean.rename(columns=rename_dict)
 
-    df_clean.to_excel(output_filename, index=False)
+    output_buffer = dataframe_to_excel_buffer(df_clean)
 
     info = {
         "marks_column_original": marks_col,
@@ -78,4 +84,4 @@ def clean_and_standardize_excel(uploaded_file, output_filename="clean_student_da
         "output_filename": output_filename,
     }
 
-    return df_clean, output_filename, info
+    return df_clean, output_buffer, output_filename, info

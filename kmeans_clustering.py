@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+from io import BytesIO
 
 
 def train_kmeans_clustering(df):
@@ -27,8 +28,10 @@ def train_kmeans_clustering(df):
 
 
 def save_clustered_excel(df, filename="student_remarks.xlsx"):
-    df.to_excel(filename, index=False)
-    print(f"\nThree Clusters created and saved to {filename}")
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False)
+    buffer.seek(0)
+    return buffer
 
 
 def plot_clusters(df):

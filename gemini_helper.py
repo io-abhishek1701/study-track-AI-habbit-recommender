@@ -1,9 +1,30 @@
 import os
 from google import genai
-print("GEMINI_API_KEY =", os.getenv("GEMINI_API_KEY"))
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+import streamlit as st
 
-MODEL_NAME = "gemini-3-flash-preview"
+MODEL_NAME = "gemini-2.5-flash"
+_client = None
+
+
+def get_gemini_api_key():
+    api_key = os.getenv("GEMINI_API_KEY")
+    if api_key:
+        return api_key
+
+    try:
+        return st.secrets.get("GEMINI_API_KEY")
+    except Exception:
+        return None
+
+
+def get_client():
+    global _client
+    if _client is None:
+        api_key = get_gemini_api_key()
+        if not api_key:
+            return None
+        _client = genai.Client(api_key=api_key)
+    return _client
 
 def generate_student_feedback(study, work, play, sleep, marks, cluster):
     # Map the cluster ID to a readable word for the AI
@@ -21,6 +42,10 @@ def generate_student_feedback(study, work, play, sleep, marks, cluster):
     """
 
     try:
+        client = get_client()
+        if client is None:
+            return "Gemini feedback is unavailable because GEMINI_API_KEY is not configured."
+
         response = client.models.generate_content(
             model=MODEL_NAME,
             contents=prompt

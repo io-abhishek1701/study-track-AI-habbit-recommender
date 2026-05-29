@@ -7,7 +7,9 @@ from otp import (
     otp_expiry,
     store_otp,
     verify_otp,
-    send_otp_email
+    send_otp_email,
+    check_otp_request_limit,
+    record_otp_request
 )
 
 def hash_password(password: str) -> str:
@@ -150,11 +152,22 @@ def auth_page():
                         st.error("Passwords do not match")
 
                     else:
+                        allowed, limit_message = check_otp_request_limit(email)
+                        if not allowed:
+                            st.error(limit_message)
+                            st.stop()
+
                         otp = generate_otp()
                         expiry = otp_expiry()
 
+                        try:
+                            send_otp_email(email, otp)
+                        except Exception as e:
+                            st.error(str(e))
+                            st.stop()
+
                         store_otp(email, otp, expiry)
-                        send_otp_email(email, otp)
+                        record_otp_request(email)
 
                         st.session_state.otp_sent = True
                         st.session_state.pending_signup = {

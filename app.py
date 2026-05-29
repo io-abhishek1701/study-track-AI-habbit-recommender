@@ -15,7 +15,7 @@ from auth import auth_page
 from styles import load_styles
 from data_cleaner import clean_and_standardize_excel
 from model import train_regression_model, predict_student_score
-from kmeans_clustering import train_kmeans_clustering, save_clustered_excel
+from kmeans_clustering import train_kmeans_clustering
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -356,7 +356,7 @@ if st.session_state.current_page == "app":
 
     # ---------------- DATA PROCESSING ----------------
     
-    clean_df, clean_filename, info = clean_and_standardize_excel(
+    clean_df, clean_buffer, clean_filename, info = clean_and_standardize_excel(
         uploaded_file,
         output_filename="clean_student_data.xlsx"
     )
@@ -384,8 +384,6 @@ if st.session_state.current_page == "app":
         r2 = st.session_state.r2
         clustered_df = st.session_state.clustered_df
 
-    save_clustered_excel(clustered_df, "student_remarks.xlsx")
-
     # ---------------- TABS IMPLEMENTATION ----------------
     
     # ---------------- DATA ANALYSIS TAB ----------------
@@ -396,13 +394,12 @@ if st.session_state.current_page == "app":
         st.markdown("##### 1. Processed Data Preview")
         st.dataframe(clustered_df.head(10), use_container_width=True)
         
-        with open(clean_filename, "rb") as f:
-            st.download_button(
-                "📥 Download Cleaned Dataset",
-                f,
-                clean_filename,
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+        st.download_button(
+            "📥 Download Cleaned Dataset",
+            clean_buffer,
+            clean_filename,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
         st.markdown("---")
 
