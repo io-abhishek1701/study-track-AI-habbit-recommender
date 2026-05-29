@@ -8,8 +8,6 @@ from db import init_db
 from otp import init_otp_table
 init_db()
 init_otp_table()
-
-# --- CUSTOM MODULES (Keep your existing files) ---
 from gemini_helper import generate_student_feedback
 from auth import auth_page
 from styles import load_styles
@@ -17,14 +15,12 @@ from data_cleaner import clean_and_standardize_excel
 from model import train_regression_model, predict_student_score
 from kmeans_clustering import train_kmeans_clustering, get_cluster_performance_map, get_cluster_status_map
 
-# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="StudyTrack AI",
     layout="wide",
     page_icon="📚"
 )
 
-# ---------------- SESSION STATE INIT ----------------
 if "current_page" not in st.session_state:
     st.session_state.current_page = "home"
 if "uploaded_file" not in st.session_state:
@@ -42,7 +38,6 @@ if "y_pred" not in st.session_state:
 if "data_processed" not in st.session_state:
     st.session_state.data_processed = False
 
-# ---------------- AUTH CHECK ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "auth_tab" not in st.session_state:
@@ -52,13 +47,10 @@ if not st.session_state.logged_in:
     auth_page()
     st.stop()
 
-# ---------------- GLOBAL STYLES ----------------
 load_styles()
 
-# ---------------- HOME PAGE  ----------------
 if st.session_state.current_page == "home":
     
-    # 1. INJECT CSS TO STYLE THE NATIVE STREAMLIT BUTTON
     st.markdown("""
         <style>
             div.stButton > button {
@@ -246,7 +238,6 @@ if st.session_state.current_page == "home":
         scrolling=False
     )
 
-    # 3. PLACE THE REAL PYTHON BUTTON
     col1, col2, col3 = st.columns([5, 2, 5])
     with col2:
         if st.button("INITIALIZE DASHBOARD >>"):
@@ -255,10 +246,8 @@ if st.session_state.current_page == "home":
 
     st.stop()
 
-# ---------------- APP PAGE (DASHBOARD) ----------------
 if st.session_state.current_page == "app":
 
-    # --- INJECT DASHBOARD SPECIFIC CSS (To match the Sci-Fi Home Theme) ---
     st.markdown("""
         <style>
             /* Force dark theme for dashboard components */
@@ -283,7 +272,6 @@ if st.session_state.current_page == "app":
         </style>
     """, unsafe_allow_html=True)
 
-    # ---------------- SIDEBAR ----------------
     st.sidebar.title("Navigation ↓")
     st.sidebar.markdown("---")
 
@@ -303,14 +291,12 @@ if st.session_state.current_page == "app":
         st.session_state.auth_tab = "signin"
         st.rerun()
 
-    # ---------------- MAIN DASHBOARD CONTENT ----------------
     st.title("StudyTrack AI Dashboard")
     st.markdown("`STATUS: SYSTEM READY`")
     
     st.info("Workflow: Upload Dataset → Clean → Train → Cluster → Predict")
     
 
-    # ---------------- FILE UPLOAD ----------------
     uploaded_file = st.file_uploader(
         "Upload Student Dataset (CSV/Excel)",
         type=["xlsx", "csv"]
@@ -330,7 +316,6 @@ if st.session_state.current_page == "app":
         st.warning("⚠️ Awaiting Data Input. Please upload a file to proceed.")
         st.stop()
 
-    # ---------------- LOADER (RUNS ONLY ONCE) ----------------
     if not st.session_state.data_processed:
         progress = st.progress(0)
         status = st.empty()
@@ -354,7 +339,6 @@ if st.session_state.current_page == "app":
         progress.empty()
         st.session_state.data_processed = True
 
-    # ---------------- DATA PROCESSING ----------------
     
     try:
         clean_df, clean_buffer, clean_filename, info = clean_and_standardize_excel(
@@ -365,7 +349,6 @@ if st.session_state.current_page == "app":
         st.error(str(e))
         st.stop()
 
-    # ---------------- MODEL TRAINING ----------------
     if st.session_state.model is None:
         model, mse, r2, X_test, y_test, y_pred = train_regression_model(clean_df)
         clustered_df, scaler, kmeans = train_kmeans_clustering(clean_df)
@@ -388,13 +371,10 @@ if st.session_state.current_page == "app":
         r2 = st.session_state.r2
         clustered_df = st.session_state.clustered_df
 
-    # ---------------- TABS IMPLEMENTATION ----------------
     
-    # ---------------- DATA ANALYSIS TAB ----------------
     if selected_tab == "Data Analysis":
         st.subheader("Data Analysis Module")
         
-        # --- 1. DATA PREVIEW SECTION ---
         st.markdown("##### 1. Processed Data Preview")
         st.dataframe(clustered_df.head(10), use_container_width=True)
         
@@ -407,10 +387,8 @@ if st.session_state.current_page == "app":
 
         st.markdown("---")
 
-        # --- 2. MODEL PERFORMANCE METRICS ---
         st.markdown("##### Model Performance Report")
         
-        # Calculate extra metrics dynamically
         from sklearn.metrics import mean_absolute_error
         import numpy as np
 
@@ -418,7 +396,6 @@ if st.session_state.current_page == "app":
         rmse = np.sqrt(mse)
         
         # Custom "Accuracy": Percentage of predictions within ±10 marks of actual
-        # (This gives a human-readable "Accuracy" feel)
         accuracy_within_10 = np.mean(np.abs(y_test - y_pred) <= 10) * 100
 
         # Create 4 columns for metrics
@@ -454,7 +431,6 @@ if st.session_state.current_page == "app":
                 help="Percentage of students whose predicted marks were within 10 marks of reality."
             )
 
-        # --- 3. JSON DETAILS ---
         with st.expander("View Technical Details"):
             st.json({
                 "Total Students Processed": len(clustered_df),
@@ -593,8 +569,6 @@ if st.session_state.current_page == "app":
                             play = row["PlayHours"]
                             sleep = row["SleepHour"]
                             work = row["WorkHours"]
-
-                            # Logic Hierarchy (checked in order)
                             
                             # 1. High Performer but Risk of Burnout
                             if marks >= 85 and sleep < 5:
@@ -638,7 +612,6 @@ if st.session_state.current_page == "app":
 
                         # Apply the function row by row
                         new_data["Suggestion"] = new_data.apply(generate_smart_remark, axis=1)
-                        # ---------------------------------------------------------
 
                     st.success("Batch Processing Complete")
                     
